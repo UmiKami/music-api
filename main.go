@@ -90,29 +90,33 @@ func main()  {
 		BodyLimit: maxBodySize,
 	})
 
+	api := app.Group("/api/v1/")
+
 
 	app.Get("/", index)
 
 	// auth start
 
-	app.Post("/login", login)
-	app.Post("/signup", signUp)
+	api.Post("/login", login)
+	api.Post("/signup", signUp)
 
 	// auth end
 	
 	// public routes
-	app.Get("/artist", getAllArtists)
-	app.Get("/music", getAllMusic)
+	api.Get("/artist", getAllArtists)
+	api.Get("/music", getAllMusic)
 
 	// restricted routes [anything below this point is going to be restricted]
-	app.Use(jwtware.New(jwtware.Config{
+	api.Use(jwtware.New(jwtware.Config{
 		SigningKey: jwtware.SigningKey{Key: []byte(os.Getenv("JWT_SECRET_KEY"))},
 	}))
 
-	app.Post("/artist", createArtist)
-	app.Post("/music", postMusic)
-	app.Delete("/music", deleteMusic)
+	api.Post("/artist", createArtist)
+	api.Post("/music", postMusic)
+	api.Delete("/music", deleteMusic)
 
+	// api.Put("/user")
+	// api.Delete("/user/acc")
 
 	app.Listen(":3001")
 }
