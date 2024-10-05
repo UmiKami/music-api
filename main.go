@@ -16,7 +16,7 @@ import (
 	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
-	"github.com/marekm4/color-extractor"
+	color_extractor "github.com/marekm4/color-extractor"
 	"gorm.io/gorm"
 )
 
@@ -112,11 +112,16 @@ func main()  {
 	}))
 
 	api.Post("/artist", createArtist)
+	// api.Put("/artist", editArtistProfile)
+	
+	
 	api.Post("/music", postMusic)
+	// api.Put("/music", editMusic)
 	api.Delete("/music", deleteMusic)
 
-	// api.Put("/user")
-	// api.Delete("/user/acc")
+	// api.Get("/account", getAccount)
+	// api.Put("/account", editAccount)
+	// api.Delete("/account/delete", deleteAccount)
 
 	app.Listen(":3001")
 }
@@ -256,7 +261,7 @@ func getAllArtists(c *fiber.Ctx) error {
 }
 
 func getAllMusic(c *fiber.Ctx) error {
-	var songs []models.MusicFile
+	var songs []models.Music
 
 	result := db.DB.Find(&songs)
 
@@ -327,7 +332,7 @@ func postMusic(c *fiber.Ctx) error {
 			})	
 		}
 
-		music := &models.MusicFile{
+		music := &models.Music{
 			ArtistID: uint(artistID),
 			Title: title[0],
 			Album: album[0],
@@ -357,7 +362,7 @@ func postMusic(c *fiber.Ctx) error {
 }
 
 func deleteMusic(c *fiber.Ctx) error {
-	var music []models.MusicFile
+	var music []models.Music
 	var query QueryById
 
 	if err := c.BodyParser(&query); err != nil {
