@@ -8,9 +8,11 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"umikami/go-music/db"
+	"time"
 	auth "umikami/go-music/auth"
+	"umikami/go-music/db"
 	"umikami/go-music/models"
+
 	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
@@ -19,6 +21,8 @@ import (
 )
 
 const maxBodySize = 20 * 1024 * 1024
+
+var DB = db.DB
 
 type QueryById struct {
 	ID	[]int	`json:"id"`
@@ -100,7 +104,7 @@ func main()  {
 	app.Get("/artist", getAllArtists)
 	app.Get("/music", getAllMusic)
 
-	// restricted routes
+	// restricted routes [anything below this point is going to be restricted]
 	app.Use(jwtware.New(jwtware.Config{
 		SigningKey: jwtware.SigningKey{Key: []byte(os.Getenv("JWT_SECRET_KEY"))},
 	}))
@@ -189,11 +193,11 @@ func login(c *fiber.Ctx) error {
 		})	
 	}
 
-	var time auth.TimeDelta
+	var timeDelta auth.TimeDelta
 
-	time.Minutes = 30
+	timeDelta.Minutes = 30
 
-	token, err := auth.CreateJWTToken(user.ID, false, time)
+	token, err := auth.CreateJWTToken(user.ID, false, timeDelta)
 
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -201,6 +205,11 @@ func login(c *fiber.Ctx) error {
 		})
 	}
 
+	user.LastLogin = time.Now()
+
+	if err := db.DB.Save(&user).Error; err != nil {
+        return err
+    }
 
 	return c.Status(200).JSON(fiber.Map{"message": "Login Successful", "access_token": token})
 }
